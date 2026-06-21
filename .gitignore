@@ -1,18 +1,8 @@
-# IntelliJ
-.idea/
-*.iml
-
-# Maven
-target/
-
 # Fichiers temporaires
 *.tmp
 ~$*
 *.log
 hs_err_pid*
-
-# Dossier source images (doublon de static/img)
-image_FS/
 
 # Dossier remise temporaire
 ../Ghayout_Boubchrie_REMISE/

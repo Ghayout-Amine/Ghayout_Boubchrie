@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Accueil - ID3 Nursery')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: header('accueil')}"></header>
+
+<main>
+
+    <section class="hero fade-in">
+        <img class="hero-bg" th:src="@{/img/fso2019.png?v=3}" alt="Faculte des Sciences Oujda">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <span class="hero-badge">Master M2I · Data Mining 2025/2026</span>
+            <h1>Classification Nursery par arbre de decision ID3</h1>
+            <p>
+                Implementation from scratch en Java · Dataset UCI Nursery ·
+                5 classes · <span th:text="${nbAttributs}">8</span> attributs categoriels · Spring Boot
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-gold" th:href="@{/apprentissage}">Commencer le projet</a>
+                <a class="btn btn-outline" th:href="@{/prediction}">Tester une prediction</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="prof-card fade-in-up">
+        <img class="prof-photo prof-photo-logo" th:src="@{/img/master-fso.png?v=3}" alt="Logo Faculte des Sciences">
+        <div class="prof-info">
+            <h3>Pr. Azzeddine Mazroui</h3>
+            <p>Encadrant · Module Data Mining · Chapitre 5 — Arbres de decision</p>
+            <p style="margin-top:0.5rem;font-size:0.85rem;opacity:0.8;">
+                Universite Mohammed Premier — Faculte des Sciences, Oujda
+            </p>
+        </div>
+    </section>
+
+    <section class="info-grid stagger-children">
+        <article class="info-card fade-in-up">
+            <img th:src="@{/img/fso2019.png?v=3}" alt="Campus FSO Oujda">
+            <h3>Faculte des Sciences</h3>
+            <p>Universite Mohammed Premier (UMP), Oujda, Maroc</p>
+        </article>
+        <article class="info-card fade-in-up">
+            <img th:src="@{/img/master-fso.png?v=3}" alt="Logo FSO" class="info-logo">
+            <h3>Master M2I · FSO</h3>
+            <p>Ingenierie Informatique · Data Mining 2025/2026</p>
+        </article>
+        <article class="info-card fade-in-up">
+            <img th:src="@{/img/32132.png?v=3}" alt="UMP et FSO" class="info-logo">
+            <h3>Projet binome</h3>
+            <p><strong>Ghayout Amine</strong> &amp; <strong>Boubechrie Rida</strong></p>
+        </article>
+    </section>
+
+    <section class="card fade-in-up">
+        <h2>Presentation du projet</h2>
+        <p>
+            Ce systeme apprend a partir du dataset <strong>Nursery</strong> (UCI Machine Learning Repository),
+            construit un <strong>arbre de decision ID3</strong> avec <strong>entropie</strong> et
+            <strong>gain d'information</strong> sur des attributs categoriels,
+            puis predit la <strong>classe de recommandation</strong> pour l'inscription en creche
+            d'une nouvelle candidature.
+        </p>
+
+        <div class="stats-row">
+            <div class="stat-box">
+                <strong>5</strong>
+                <span>Classes</span>
+            </div>
+            <div class="stat-box">
+                <strong>~10k</strong>
+                <span>Entrainement</span>
+            </div>
+            <div class="stat-box">
+                <strong>~2,6k</strong>
+                <span>Test</span>
+            </div>
+            <div class="stat-box">
+                <strong th:text="${nbAttributs}">8</strong>
+                <span>Attributs</span>
+            </div>
+            <div class="stat-box">
+                <strong>12 960</strong>
+                <span>Instances totales</span>
+            </div>
+        </div>
+
+        <div class="methodologie-rapport">
+            <h3>Pipeline du projet</h3>
+            <ol>
+                <li>Chargement CSV : 8 attributs categoriels + classe cible</li>
+                <li>Encodage discret : chaque modalite → indice entier par attribut</li>
+                <li>Arbre ID3 : entropie + gain d'information (Chapitre 5)</li>
+                <li>Evaluation : exactitude, precision, rappel, F1, matrice de confusion</li>
+            </ol>
+        </div>
+
+        <p>
+            <strong>Etat du systeme :</strong>
+            <span th:text="${message}">...</span>
+        </p>
+        <p>
+            <strong>Arbre entraine :</strong>
+            <span th:text="${entraine} ? 'Oui' : 'Non'">Non</span>
+        </p>
+    </section>
+
+    <section class="card fade-in-up">
+        <h2>Dataset Nursery (UCI)</h2>
+        <p>
+            Fichiers dans le projet (dossier <code>donnees/</code>) :
+        </p>
+        <ul class="liste-fichiers-dataset">
+            <li><code>donnees/nursery.data</code> — source UCI brute (12 960 instances)</li>
+            <li><code>donnees/entrainement.csv</code> — ~10 368 instances (80 %)</li>
+            <li><code>donnees/test.csv</code> — ~2 592 instances (20 %)</li>
+        </ul>
+        <p class="note-cours">
+            En-tete CSV :
+            <code>parents,has_nurs,form,children,housing,finance,social,health,classe</code>
+        </p>
+
+        <h3 class="section-titre section-titre-sm">Attributs et modalites</h3>
+        <table class="tableau-dataset">
+            <thead>
+                <tr><th>Attribut</th><th>Modalites</th></tr>
+            </thead>
+            <tbody>
+                <tr th:each="attribut : ${attributsFormulaire}">
+                    <td th:text="${attribut.nom}">parents</td>
+                    <td th:text="${#strings.listJoin(attribut.modalites, ', ')}">usual, pretentious</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-titre section-titre-sm">Classes (5)</h3>
+        <div class="feuilles-arbre-badges">
+            <span th:each="classe : ${classesNursery}"
+                  class="badge-classe"
+                  th:classappend="' ' + ${classe}"
+                  th:text="${classe}">priority</span>
+        </div>
+    </section>
+
+    <section class="card fade-in-up">
+        <h2>Parcours de l'application</h2>
+        <div class="workflow-steps">
+            <div class="workflow-step">
+                <span class="step-num">1</span>
+                <h4>Apprentissage</h4>
+                <p>Charger les donnees Nursery et construire l'arbre ID3</p>
+            </div>
+            <div class="workflow-step">
+                <span class="step-num">2</span>
+                <h4>Prediction</h4>
+                <p>Renseigner les 8 attributs et obtenir la classe predite</p>
+            </div>
+            <div class="workflow-step">
+                <span class="step-num">3</span>
+                <h4>Evaluation</h4>
+                <p>Mesurer exactitude, precision, rappel, F1 macro et matrice de confusion</p>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>

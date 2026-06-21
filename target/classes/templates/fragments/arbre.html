@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="toolbar-zoom">
+    <div class="arbre-zoom-toolbar">
+        <button type="button" class="btn-zoom" data-zoom-action="out" title="Reduire">−</button>
+        <span class="arbre-zoom-label">100%</span>
+        <button type="button" class="btn-zoom" data-zoom-action="in" title="Agrandir">+</button>
+        <button type="button" class="btn-zoom btn-zoom-reset" data-zoom-action="reset" title="Taille par defaut">Defaut</button>
+    </div>
+</div>
+
+<div th:fragment="apercu(noeud)" th:if="${noeud != null}" class="arbre-cours-diagram">
+    <div class="arbre-legende-visuelle">
+        <span class="legende-item"><span class="pastille gris"></span> Nœud = attribut teste</span>
+        <span class="legende-item"><span class="pastille rouge"></span> Branche = modalite</span>
+        <span class="legende-item"><span class="pastille vert"></span> Feuille = classe (badge colore)</span>
+    </div>
+    <p class="arbre-scroll-hint">↔ Defilez horizontalement et verticalement pour voir toutes les classes</p>
+    <div th:replace="~{fragments/arbre :: noeud-cours(${noeud}, true)}"></div>
+</div>
+
+<div th:fragment="feuille-classe(libelle, finale)" th:if="${libelle != null}"
+     th:class="${'tree-leaf leaf-' + libelle + (finale ? ' tree-leaf-finale' : '')}"
+     th:text="${libelle}">priority</div>
+
+<div th:fragment="noeud-cours(noeud, estRacine)" th:if="${noeud != null}" class="tree-cell">
+    <div th:if="${noeud.type == 'feuille'}"
+         th:replace="~{fragments/arbre :: feuille-classe(${noeud.libelle}, false)}"></div>
+    <div th:if="${noeud.type == 'interne'}" class="tree-interne">
+        <div class="tree-node" th:classappend="${estRacine} ? ' racine' : ''"
+             th:text="${noeud.libelle}"></div>
+        <div class="tree-stem"></div>
+        <div class="tree-fork">
+            <div th:each="branche : ${noeud.branches}" th:if="${branche.enfant != null}" class="tree-branch">
+                <div class="tree-branch-stem" aria-hidden="true"></div>
+                <span class="branch-name" th:text="${branche.valeur}">absent</span>
+                <div class="branch-line"></div>
+                <div th:replace="~{fragments/arbre :: noeud-cours(${branche.enfant}, false)}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="chemin(etape)" th:if="${etape != null}" class="chemin-prediction-diagram">
+    <p class="arbre-legende-cours">
+        Chemin unique suivi par l'instance : attribut teste → branche choisie → classe predite.
+    </p>
+    <div th:replace="~{fragments/arbre :: etape-chemin-ligne(${etape}, true)}"></div>
+</div>
+
+<div th:fragment="etape-chemin-ligne(etape, estRacine)" th:if="${etape != null}" class="chemin-ligne-etape">
+    <div th:if="${etape.estFeuille}"
+         th:replace="~{fragments/arbre :: feuille-classe(${etape.classeFeuille}, true)}"></div>
+
+    <div th:unless="${etape.estFeuille}" class="chemin-ligne-interne">
+        <div class="tree-node" th:classappend="${estRacine} ? ' racine' : ''"
+             th:text="${etape.attribut}"></div>
+        <div class="tree-stem"></div>
+        <span class="branch-name active" th:text="${etape.valeurAttribut}">faible</span>
+        <div class="branch-line"></div>
+        <div th:if="${etape.suite != null}"
+             th:replace="~{fragments/arbre :: etape-chemin-ligne(${etape.suite}, false)}"></div>
+    </div>
+</div>
+
+</body>
+</html>

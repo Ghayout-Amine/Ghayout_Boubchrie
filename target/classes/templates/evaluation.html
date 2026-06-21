@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Evaluation - ID3')}"></head>
+
+<body>
+
+
+
+<header th:replace="~{fragments/layout :: header('evaluation')}"></header>
+
+
+
+<main>
+
+
+
+    <h1 class="page-title fade-in-up">Evaluation</h1>
+
+    <p class="page-subtitle fade-in-up">Performances sur le jeu de test Nursery (~2 592 instances)</p>
+
+
+
+    <div th:if="${succes}" class="alert-success fade-in" th:text="${succes}"></div>
+
+    <div th:if="${erreur}" class="alert-error fade-in" th:text="${erreur}"></div>
+
+
+
+    <div class="card fade-in-up" th:if="${!entraine}">
+
+        <p>Aucune evaluation disponible. Construisez d'abord l'arbre.</p>
+
+        <a class="btn" th:href="@{/apprentissage}">Aller a l'apprentissage</a>
+
+    </div>
+
+
+
+    <div class="card fade-in-up" th:if="${entraine and evaluation == null and (nbTest == null or nbTest == 0)}">
+
+        <p>L'arbre est construit mais aucun fichier de test n'a ete charge.</p>
+
+    </div>
+
+
+
+    <div class="card fade-in-up" th:if="${entraine and evaluation == null and nbTest != null and nbTest > 0}">
+
+        <h2 class="section-titre">Lancer l'evaluation</h2>
+
+        <p class="note-cours">
+
+            Evaluation sur <strong th:text="${nbTest}">0</strong> instances de test
+
+            (separee de la construction pour garder la prediction rapide).
+
+        </p>
+
+        <form th:action="@{/evaluer}" method="post">
+
+            <button type="submit" class="btn-gold btn-evaluer">Evaluer sur le jeu de test</button>
+
+        </form>
+
+    </div>
+
+
+
+    <div class="card fade-in-up section-capture-metriques" th:if="${evaluation != null}">
+
+        <h2 class="section-titre">Metriques multiclasses</h2>
+
+        <p class="note-cours note-resultat">
+
+            <strong th:text="${evaluation.nbInstances}">0</strong> instances de test ·
+
+            <strong th:text="${#lists.size(evaluation.classes)}">5</strong> classes dans la matrice ·
+
+            <strong th:text="${nbAttributs}">8</strong> attributs categoriels.
+
+            Hasard (5 classes) ≈ <strong>20 %</strong> d'exactitude.
+
+        </p>
+
+        <p class="note-cours" th:if="${evaluation.metriquesParClasse != null}">
+            <span th:each="m : ${evaluation.metriquesParClasse}" th:if="${m.support == 0}">
+                La classe <strong th:text="${m.classe}">recommend</strong> n'apparait pas dans le jeu de test
+                (tres rare dans Nursery : ~2 instances sur 12 960).
+            </span>
+        </p>
+
+
+
+        <div class="stats-row stats-row-metriques">
+
+            <div class="stat-box stat-box-metric">
+
+                <strong th:text="${#numbers.formatDecimal(evaluation.exactitude * 100, 1, 2)} + '%'">0%</strong>
+
+                <span>Exactitude</span>
+
+            </div>
+
+            <div class="stat-box stat-box-metric">
+
+                <strong th:text="${#numbers.formatDecimal(evaluation.precisionMacro * 100, 1, 2)} + '%'">0%</strong>
+
+                <span>Precision macro</span>
+
+            </div>
+
+            <div class="stat-box stat-box-metric">
+
+                <strong th:text="${#numbers.formatDecimal(evaluation.rappelMacro * 100, 1, 2)} + '%'">0%</strong>
+
+                <span>Rappel macro</span>
+
+            </div>
+
+            <div class="stat-box stat-box-metric">
+
+                <strong th:text="${#numbers.formatDecimal(evaluation.f1Macro * 100, 1, 2)} + '%'">0%</strong>
+
+                <span>F1 macro</span>
+
+            </div>
+
+        </div>
+
+
+
+        <h3 class="section-titre section-titre-sm">Metriques par classe</h3>
+
+        <div class="table-scroll">
+
+            <table class="matrice-confusion metriques-classe">
+
+                <thead>
+
+                <tr>
+
+                    <th>Classe</th>
+
+                    <th>Precision</th>
+
+                    <th>Rappel (Recall)</th>
+
+                    <th>F1-score</th>
+
+                    <th>Support</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <tr th:each="m : ${evaluation.metriquesParClasse}">
+
+                    <th th:text="${m.classe}">priority</th>
+
+                    <td th:text="${#numbers.formatDecimal(m.precision * 100, 1, 2)} + '%'">0%</td>
+
+                    <td th:text="${#numbers.formatDecimal(m.rappel * 100, 1, 2)} + '%'">0%</td>
+
+                    <td th:text="${#numbers.formatDecimal(m.f1 * 100, 1, 2)} + '%'">0%</td>
+
+                    <td th:text="${m.support}">0</td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+
+        <p class="metriques-aide">
+
+            <strong>Precision</strong> : parmi les instances predites dans une classe, combien sont correctes.<br>
+
+            <strong>Rappel (Recall)</strong> : parmi les vraies instances d'une classe, combien sont bien detectees.<br>
+
+            <strong>F1</strong> : moyenne harmonique de precision et rappel.<br>
+
+            <strong>Support</strong> : nombre d'instances reelles de cette classe dans le test.
+
+        </p>
+
+
+
+        <h3 class="section-titre section-titre-sm">Matrice de confusion</h3>
+
+        <p class="legende-matrice">Diagonal vert = predictions correctes · Hors diagonal = erreurs</p>
+
+        <div class="table-scroll">
+
+            <table class="matrice-confusion matrice-confusion-full">
+
+                <thead>
+
+                <tr>
+
+                    <th></th>
+
+                    <th th:each="classe : ${evaluation.classes}" th:text="'Predicted ' + ${classe}">Predicted</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <tr th:each="classeReelle, stat : ${evaluation.classes}">
+
+                    <th th:text="'Actual ' + ${classeReelle}">Actual</th>
+
+                    <td th:each="classePredite, pred : ${evaluation.classes}"
+                        th:text="${evaluation.matrice[stat.index][pred.index]}"
+                        th:classappend="${stat.index == pred.index} ? ' matrice-diagonale' : (${evaluation.matrice[stat.index][pred.index] > 0} ? ' matrice-erreur' : '')">0</td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+</main>
+
+
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script th:replace="~{fragments/layout :: scripts}"></script>
+
+</body>
+
+</html>
+
+
