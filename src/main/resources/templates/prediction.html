@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Prediction - ID3')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: header('prediction')}"></header>
+
+<main>
+
+    <h1 class="page-title fade-in-up">Prediction</h1>
+    <p class="page-subtitle fade-in-up">Classifier une candidature creche avec l'arbre ID3 (Nursery)</p>
+
+    <div th:if="${erreur}" class="alert-error fade-in" th:text="${erreur}"></div>
+
+    <div class="card fade-in-up" th:if="${!entraine}">
+        <p>L'arbre n'est pas encore construit.</p>
+        <a class="btn" th:href="@{/apprentissage}">Aller a l'apprentissage</a>
+    </div>
+
+    <div class="card fade-in-up" th:if="${entraine}">
+        <h2 class="section-titre">Renseigner les attributs</h2>
+        <p class="note-cours">
+            <span th:text="${nbAttributs}">8</span> attributs categoriels du dataset Nursery.
+            L'algorithme ID3 suit le chemin de l'arbre selon les modalites choisies.
+        </p>
+        <form th:action="@{/predire}" method="post" class="form-nursery">
+            <div th:each="attribut : ${attributsFormulaire}" class="champ-nursery">
+                <label th:for="${attribut.nom}" th:text="${attribut.nom}">parents</label>
+                <select th:id="${attribut.nom}" th:name="${attribut.nom}" required>
+                    <option value="">-- Choisir --</option>
+                    <th:block th:each="modalite : ${attribut.modalites}">
+                        <option th:value="${modalite}"
+                                th:text="${modalite}"
+                                th:selected="${valeursSaisies != null and valeursSaisies[attribut.nom] == modalite}"></option>
+                    </th:block>
+                </select>
+            </div>
+            <button type="submit" class="btn-gold">Predire la classe</button>
+        </form>
+    </div>
+
+    <div class="card fade-in-up section-capture-prediction" th:if="${classe != null and erreur == null}">
+        <h2 class="section-titre">Resultat de la prediction</h2>
+        <div class="resultat-prediction">
+            <p><strong>Attributs saisis :</strong></p>
+            <dl class="valeurs-nursery" th:if="${valeursSaisies != null}">
+                <div th:each="attribut : ${attributsFormulaire}">
+                    <dt th:text="${attribut.nom}">parents</dt>
+                    <dd th:text="${valeursSaisies[attribut.nom]}">usual</dd>
+                </div>
+            </dl>
+            <p class="resultat-classe-ligne">
+                <strong>Classe predite :</strong>
+                <span class="badge-classe badge-classe-lg" th:classappend="' ' + ${classe}" th:text="${classe}">priority</span>
+            </p>
+        </div>
+
+        <h3 class="section-titre section-titre-sm">Chemin suivi dans l'arbre</h3>
+
+        <ol th:if="${cheminNiveaux != null and !cheminNiveaux.isEmpty()}" class="chemin-liste-etapes">
+            <li th:each="niveau : ${cheminNiveaux}">
+                Attribut <strong th:text="${niveau.attribut}">parents</strong>
+                → <span class="rouge" th:text="${niveau.valeurAttribut}">usual</span>
+            </li>
+            <li class="chemin-fin">Classe predite : <strong th:text="${classe}">priority</strong></li>
+        </ol>
+        <p th:if="${cheminNiveaux == null or cheminNiveaux.isEmpty()}" class="note-cours">
+            Chemin direct vers une feuille (aucun attribut teste sur ce parcours).
+        </p>
+
+        <div class="arbre-zoom-panel arbre-zoom-prediction" th:if="${cheminArbre != null}" data-zoom-default="1">
+            <div th:replace="~{fragments/arbre :: toolbar-zoom}"></div>
+            <div class="arbre-apercu-conteneur">
+                <div class="arbre-zoom-canvas">
+                    <div th:replace="~{fragments/arbre :: chemin(${cheminArbre})}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/arbre.js}"></script>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>
